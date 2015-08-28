@@ -1,0 +1,30 @@
+<h2>Page Views</h2>
+<table>
+  <thead>
+    <tr>
+      <th>Path</th>
+      <th>Views</th>
+    </tr>
+  </thead>
+  <% @log.all_views.each_pair do |page,views| %>
+    <tr>
+      <td><%= page %></td>
+      <td><%= views %></td>
+    </tr>
+  <% end %>
+</table>
+<h2>Unique Page Views</h2>
+<table>
+  <thead>
+    <tr>
+      <th>Path</th>
+      <th>Views</th>
+    </tr>
+  </thead>
+  <% @log.unique_views.each_pair do |page,views| %>
+    <tr>
+      <td><%= page %></td>
+      <td><%= views %></td>
+    </tr>
+  <% end %>
+</table>
