@@ -3,28 +3,47 @@ require 'sinatra/base'
 require 'sinatra/contrib'
 
 class Log
-	def initialize(path)
-		file = File.open(path, "r") #Load the log file
-    rows = file.readlines #Seperate each line of the log file for iteration
-    @full_log = Array.new
-    @all_views = Hash.new(0)
-    rows.each_with_index do |row, i|
-      webpage, ip = row.match(/^([a-z0-9_\/]+) (([0-9]{3}\.){3}[0-9]{3})$/).captures #Separates the page and IP address into variables
-      @full_log[i+1] = {"webpage": webpage, "ip": ip} #Build array from log file
-      @all_views[webpage] += 1 #Populate hash to get total view count for each page
+  attr_reader :path
+
+  def initialize(path)
+    @path = path
+  end
+
+  def file
+    File.open(path, "r")
+  end
+
+  def rows
+    return @_rows if defined? @_rows
+    @_rows = file.readlines
+  end
+
+  def parsed_log
+    return @_parsed_log if defined? @_parsed_log
+    @_parsed_log = begin
+      parsed_log = []
+      rows.each do |row|
+        webpage, ip = row.match(/^([a-z0-9_\/]+) (([0-9]{3}\.){3}[0-9]{3})$/).captures
+        parsed_log << {"webpage": webpage, "ip": ip}
+      end
+      parsed_log
     end
-	end
+  end
 
   def all_views
-    return @all_views.sort_by { |page, views| views }.reverse.to_h #Return an ordered hash of total views
+    all_views = Hash.new(0)
+    parsed_log.map do |entry|
+      all_views[entry[:webpage]] += 1
+    end
+    all_views.sort_by { |page, views| views }.reverse.to_h
   end
 
   def unique_views
-    @unique_page_views = Hash.new(0)
-    @full_log.uniq.each do |entry| #Dedupe and iterate through full log
-      @unique_page_views[entry[:webpage]] += 1 unless entry.nil? #Populate hash to get unique views for each page
+    unique_page_views = Hash.new(0)
+    parsed_log.uniq.each do |entry|
+      unique_page_views[entry[:webpage]] += 1
     end
-    return @unique_page_views.sort_by { |page, views| views }.reverse.to_h #Return an ordered hash of unique views
+    unique_page_views.sort_by { |page, views| views }.reverse.to_h
   end
 end
 
@@ -32,9 +51,8 @@ class LogReport < Sinatra::Base
   set :bind, '0.0.0.0'
   register Sinatra::Contrib
 
-  get '/' do #Output the report to the web browser
-  	@log = Log.new("./webserver.log")
+  get '/' do
+    @log = Log.new("./webserver.log")
     erb :index
   end
-
 end
