@@ -3,6 +3,7 @@ When accessed in a web browser, this will parse the contents of a log file (webs
 The Log class can be used seperately and will accept the path of a log file and will return the following:
 
 Log.new(path).parsed_log - An array of hashes including all entries in the log file. Each entry has keys :webpage and :ip
+
 Log.new(path).all_views - A hash of pages and their total views ordered by views descending.
 Log.new(path).unique_views - A hash of pages and their unique views ordered by views descending.
 
